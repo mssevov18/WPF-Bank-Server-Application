@@ -1,0 +1,5 @@
+Install-Package Microsoft.EntityFrameworkCore.Tools -Version 5.0.16
+Install-Package Microsoft.EntityFrameworkCore.SqlServer -Version 5.0
+Install-Package Microsoft.EntityFrameworkCore.SqlServer.Design
+
+Scaffold-DbContext "Server=.\SQLExpress;Database=Bank_Database;Trusted_Connection=True;" Microsoft.EntityFrameworkCore.SqlServer -OutputDir Data/Models
