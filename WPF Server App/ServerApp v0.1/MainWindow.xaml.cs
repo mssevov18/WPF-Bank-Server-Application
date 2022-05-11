@@ -1,4 +1,5 @@
-﻿using ServerApp_v0._1.Data.Models;
+﻿using Microsoft.EntityFrameworkCore;
+using ServerApp_v0._1.Data.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -27,7 +28,7 @@ namespace ServerApp_v0._1
         private bool isOn;
         private bool isStartStopButtonLocked;
         private int refreshRate;
-        private List<Log> logs;
+        private List<Request> requests;
 
         public MainWindow()
         {
@@ -47,8 +48,8 @@ namespace ServerApp_v0._1
             DateTimer.Start();
 
             isOn = false;
+            requests = new List<Request>();
             RefreshRateTextBox.Focus();
-            logs = new List<Log>();
         }
 
         private void TimeTimer_Tick(object sender, EventArgs e)
@@ -78,37 +79,46 @@ namespace ServerApp_v0._1
             else
             {
                 UpdateTimer = new System.Windows.Threading.DispatcherTimer();
-                UpdateTimer.Tick += new EventHandler(UpdateLogViewBox);
+                UpdateTimer.Tick += new EventHandler(UpdateRequestViewBox);
                 UpdateTimer.Interval = new TimeSpan(refreshRate);
-                UpdateLogViewBox(this, EventArgs.Empty);
+                UpdateRequestViewBox(this, EventArgs.Empty);
                 UpdateTimer.Start();
             }
         }
 
         // When interval comes update log collection
-        private void UpdateLogViewBox(object sender, EventArgs e)
+        private void UpdateRequestViewBox(object sender, EventArgs e)
         {
+            // Think of a way to pause the timer until the operation is done
+            //UpdateTimer.Stop();
             using (Bank_DatabaseContext dbContext = new Bank_DatabaseContext())
             {
-                // Make it add the new logs, instead of remaking logs...
-                // Remaking logs makes it hard for the scroll and item selection to work
-                // If left in this state it could cause issues
-                logs = dbContext.Logs.ToList<Log>();
 
-                //not gud
-                //dbContext.Logs.Add(new Log("..", 0, $"Server {DateTime.Now}", 0, true));
+                // Proccess all requests and add them to requests List
+                foreach (Request request in dbContext.Requests)
+                {
+                    if (request.IsProcessed)
+                        continue;
 
-                // TODO
-                // Process the queries
-                // TODO
+                    // TODO
+                    // Process the queries
 
+                    RequestListBox.Items.Add(request);
+                    request.IsProcessed = true;
+                }
+                dbContext.SaveChanges();
+                // Why do I have to keep updating itemsource and datacontext????
+                //RequestListBox.ItemsSource = requests;
+                //RequestListBox.DataContext = requests;
             }
-            LogListBox.ItemsSource = logs;
-            LogListBox.DataContext = logs;
+            //UpdateTimer.Start();
         }
 
         private void StartStopButton_Click(object sender, RoutedEventArgs e)
         {
+            // Possible to click the button in the ms between the input and the input check
+            if (RefreshRateTextBox.Text.Length > 5)
+                return;
             if (refreshRate == 0)
                 throw new Exception("Refresh rate can't be 0");
 
@@ -116,30 +126,59 @@ namespace ServerApp_v0._1
                 ChangeStartStopButton(!isOn);
         }
 
-        private void LockStartStopButton()
+        private bool LockStartStopButton()
         {
-            StartStopButton.Content = "Refresh Rate?";
-            StartStopButton.Background = Brushes.Gray;
-            isStartStopButtonLocked = true;
+            return ModifyStartStopButton("Refresh Rate?", Brushes.Gray, true);
+        }
+        private bool UnlockStartStopButton()
+        {
+            return ModifyStartStopButton("Start", Brushes.Green, false);
         }
 
-        private void UnlockStartStopButton()
+        /// <summary>
+        /// Moddifies the StartStop button
+        /// </summary>
+        /// <param name="content">Sets the button content.</param>
+        /// <param name="brush">Sets the button background brush.</param>
+        /// <param name="isLocked"><c>true</c> to lock the button.\n <c>false</c> to unlock the button</param>
+        private bool ModifyStartStopButton(string content, Brush brush, bool isLocked)
         {
-            StartStopButton.Content = "Start";
-            StartStopButton.Background = Brushes.Green;
-            isStartStopButtonLocked = false;
+            StartStopButton.Content = content;
+            StartStopButton.Background = brush;
+            isStartStopButtonLocked = isLocked;
+            return true;
         }
 
         private void RefreshRateTextBox_KeyUp(object sender, KeyEventArgs e)
         {
             if (isOn)
                 return;
+            // Idea! Add a dropdown to choose between seconds(s), minutes(m), hours(h), days(d)?
 
-            if (RefreshRateTextBox.Text == string.Empty || RefreshRateTextBox.Text == "")
-                LockStartStopButton();
-            else
-                if (int.TryParse(RefreshRateTextBox.Text, out refreshRate))
-                    UnlockStartStopButton();
+            //// >A optimisation is possible -Dinko
+            //// Lock the button -> No input
+            //if (RefreshRateTextBox.Text == string.Empty || RefreshRateTextBox.Text == "")
+            //    ModifyStartStopButton("Refresh Rate?", Brushes.Gray, true);
+            //else
+            //    if (int.TryParse(RefreshRateTextBox.Text, out refreshRate))
+            //    {
+            //        // Lock the button -> Too long
+            //        if (RefreshRateTextBox.Text.Length > 5)
+            //            ModifyStartStopButton("Too long!", Brushes.HotPink, true);
+
+            //        // Unlock the button
+            //        else
+            //            UnlockStartStopButton();
+            //    }
+
+            bool empty = RefreshRateTextBox.Text == string.Empty || RefreshRateTextBox.Text == "" ?
+                            LockStartStopButton() :
+                            int.TryParse(RefreshRateTextBox.Text, out refreshRate) ?
+                                RefreshRateTextBox.Text.Length > 5 ?
+                                    ModifyStartStopButton("Too long!", Brushes.HotPink, true) :
+                                    UnlockStartStopButton() :
+                                false;
+
         }
 
         private void NumericOnly(System.Object sender, System.Windows.Input.TextCompositionEventArgs e)
@@ -152,6 +191,12 @@ namespace ServerApp_v0._1
             System.Text.RegularExpressions.Regex reg = new System.Text.RegularExpressions.Regex("[^0-9]");
             return reg.IsMatch(str);
 
+        }
+
+        private void RefreshRateTextBox_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Enter)
+                StartStopButton_Click(sender, e);
         }
     }
 }

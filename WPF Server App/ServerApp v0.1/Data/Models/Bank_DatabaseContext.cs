@@ -26,8 +26,8 @@ namespace ServerApp_v0._1.Data.Models
         public virtual DbSet<GetAccountDatum> GetAccountData { get; set; }
         public virtual DbSet<GetBankWorkerDatum> GetBankWorkerData { get; set; }
         public virtual DbSet<GetBranchDatum> GetBranchData { get; set; }
-        public virtual DbSet<Log> Logs { get; set; }
         public virtual DbSet<Person> People { get; set; }
+        public virtual DbSet<Request> Requests { get; set; }
         public virtual DbSet<Transaction> Transactions { get; set; }
         public virtual DbSet<TransactionAccountConnection> TransactionAccountConnections { get; set; }
 
@@ -46,9 +46,19 @@ namespace ServerApp_v0._1.Data.Models
 
             modelBuilder.Entity<Account>(entity =>
             {
+                entity.HasKey(e => e.AccountIban)
+                    .HasName("PK_Account_IBAN");
+
                 entity.ToTable("Account");
 
-                entity.Property(e => e.AccountId).HasColumnName("account_id");
+                entity.Property(e => e.AccountIban)
+                    .HasMaxLength(32)
+                    .IsUnicode(false)
+                    .HasColumnName("account_iban");
+
+                entity.Property(e => e.AccountId)
+                    .ValueGeneratedOnAdd()
+                    .HasColumnName("account_id");
 
                 entity.Property(e => e.Balance)
                     .HasColumnType("money")
@@ -56,10 +66,26 @@ namespace ServerApp_v0._1.Data.Models
 
                 entity.Property(e => e.BankId).HasColumnName("bank_id");
 
+                entity.Property(e => e.CreationDate)
+                    .HasColumnType("date")
+                    .HasColumnName("creation_date")
+                    .HasDefaultValueSql("(getdate())");
+
+                entity.Property(e => e.Email)
+                    .IsRequired()
+                    .HasMaxLength(50)
+                    .HasColumnName("email");
+
+                entity.Property(e => e.Password)
+                    .IsRequired()
+                    .HasMaxLength(256)
+                    .HasColumnName("password");
+
                 entity.Property(e => e.PersonEgn)
                     .IsRequired()
                     .HasMaxLength(10)
                     .HasColumnName("person_egn")
+                    .HasDefaultValueSql("('0000000000')")
                     .IsFixedLength(true);
 
                 entity.HasOne(d => d.Bank)
@@ -84,7 +110,8 @@ namespace ServerApp_v0._1.Data.Models
                 entity.Property(e => e.Name)
                     .IsRequired()
                     .HasMaxLength(50)
-                    .HasColumnName("name");
+                    .HasColumnName("name")
+                    .HasDefaultValueSql("('empty')");
             });
 
             modelBuilder.Entity<BankWorker>(entity =>
@@ -92,6 +119,9 @@ namespace ServerApp_v0._1.Data.Models
                 entity.HasKey(e => e.WorkerId);
 
                 entity.ToTable("Bank_Worker");
+
+                entity.HasIndex(e => e.Username, "IX_Bank_Worker_Username")
+                    .IsUnique();
 
                 entity.Property(e => e.WorkerId).HasColumnName("worker_id");
 
@@ -101,18 +131,23 @@ namespace ServerApp_v0._1.Data.Models
 
                 entity.Property(e => e.Password)
                     .IsRequired()
-                    .HasMaxLength(20)
+                    .HasMaxLength(256)
                     .HasColumnName("password");
 
                 entity.Property(e => e.PersonEgn)
                     .IsRequired()
                     .HasMaxLength(10)
                     .HasColumnName("person_egn")
+                    .HasDefaultValueSql("('0000000000')")
                     .IsFixedLength(true);
+
+                entity.Property(e => e.Salary)
+                    .HasColumnType("money")
+                    .HasColumnName("salary");
 
                 entity.Property(e => e.Username)
                     .IsRequired()
-                    .HasMaxLength(20)
+                    .HasMaxLength(32)
                     .HasColumnName("username");
 
                 entity.HasOne(d => d.Bank)
@@ -137,7 +172,8 @@ namespace ServerApp_v0._1.Data.Models
                 entity.Property(e => e.Address)
                     .IsRequired()
                     .HasColumnType("text")
-                    .HasColumnName("address");
+                    .HasColumnName("address")
+                    .HasDefaultValueSql("('empty')");
 
                 entity.Property(e => e.BankId).HasColumnName("bank_id");
 
@@ -154,13 +190,28 @@ namespace ServerApp_v0._1.Data.Models
 
                 entity.Property(e => e.CardId).HasColumnName("card_id");
 
-                entity.Property(e => e.AccountHolderId).HasColumnName("account_holder_id");
+                entity.Property(e => e.AccountHolderIban)
+                    .IsRequired()
+                    .HasMaxLength(32)
+                    .IsUnicode(false)
+                    .HasColumnName("account_holder_iban");
 
                 entity.Property(e => e.CardNum)
                     .IsRequired()
                     .HasMaxLength(16)
                     .HasColumnName("card_num")
+                    .HasDefaultValueSql("('0000000000000000')")
                     .IsFixedLength(true);
+
+                entity.Property(e => e.CreationDate)
+                    .HasColumnType("date")
+                    .HasColumnName("creation_date")
+                    .HasDefaultValueSql("(getdate())");
+
+                entity.Property(e => e.ExpirationDate)
+                    .HasColumnType("date")
+                    .HasColumnName("expiration_date")
+                    .HasDefaultValueSql("(getdate())");
 
                 entity.Property(e => e.HolderName)
                     .IsRequired()
@@ -171,17 +222,19 @@ namespace ServerApp_v0._1.Data.Models
                     .IsRequired()
                     .HasMaxLength(4)
                     .HasColumnName("pin")
+                    .HasDefaultValueSql("('0000')")
                     .IsFixedLength(true);
 
                 entity.Property(e => e.SecurityNum)
                     .IsRequired()
                     .HasMaxLength(3)
                     .HasColumnName("security_num")
+                    .HasDefaultValueSql("('000')")
                     .IsFixedLength(true);
 
-                entity.HasOne(d => d.AccountHolder)
+                entity.HasOne(d => d.AccountHolderIbanNavigation)
                     .WithMany(p => p.Cards)
-                    .HasForeignKey(d => d.AccountHolderId)
+                    .HasForeignKey(d => d.AccountHolderIban)
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK_Card_Account");
             });
@@ -194,13 +247,18 @@ namespace ServerApp_v0._1.Data.Models
 
                 entity.Property(e => e.ReaderId).HasColumnName("reader_id");
 
-                entity.Property(e => e.AccountRecieverId).HasColumnName("account_reciever_id");
+                entity.Property(e => e.AccountRecieverIban)
+                    .IsRequired()
+                    .HasMaxLength(32)
+                    .IsUnicode(false)
+                    .HasColumnName("account_reciever_iban")
+                    .HasDefaultValueSql("((0))");
 
                 entity.Property(e => e.BankId).HasColumnName("bank_id");
 
-                entity.HasOne(d => d.AccountReciever)
+                entity.HasOne(d => d.AccountRecieverIbanNavigation)
                     .WithMany(p => p.CardReaders)
-                    .HasForeignKey(d => d.AccountRecieverId)
+                    .HasForeignKey(d => d.AccountRecieverIban)
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK_Card_Reader_Account");
 
@@ -266,29 +324,6 @@ namespace ServerApp_v0._1.Data.Models
                     .HasColumnName("Branch Address");
             });
 
-            modelBuilder.Entity<Log>(entity =>
-            {
-                entity.ToTable("Log");
-
-                entity.Property(e => e.LogId).HasColumnName("log_id");
-
-                entity.Property(e => e.IsProcessed).HasColumnName("is_processed");
-
-                entity.Property(e => e.LogType).HasColumnName("log_type");
-
-                entity.Property(e => e.Query)
-                    .IsRequired()
-                    .HasColumnType("text")
-                    .HasColumnName("query");
-
-                entity.Property(e => e.Requester)
-                    .IsRequired()
-                    .HasMaxLength(100)
-                    .HasColumnName("requester");
-
-                entity.Property(e => e.RowsReturned).HasColumnName("rows_returned");
-            });
-
             modelBuilder.Entity<Person>(entity =>
             {
                 entity.HasKey(e => e.Egn);
@@ -300,7 +335,10 @@ namespace ServerApp_v0._1.Data.Models
                     .HasColumnName("egn")
                     .IsFixedLength(true);
 
-                entity.Property(e => e.Age).HasColumnName("age");
+                entity.Property(e => e.BirthDay)
+                    .HasColumnType("date")
+                    .HasColumnName("birth_day")
+                    .HasDefaultValueSql("(getdate())");
 
                 entity.Property(e => e.FirstName)
                     .IsRequired()
@@ -323,6 +361,39 @@ namespace ServerApp_v0._1.Data.Models
                     .HasColumnName("residence");
             });
 
+            modelBuilder.Entity<Request>(entity =>
+            {
+                entity.ToTable("Request");
+
+                entity.Property(e => e.RequestId).HasColumnName("request_id");
+
+                entity.Property(e => e.Arguments)
+                    .IsRequired()
+                    .HasColumnType("text")
+                    .HasColumnName("arguments");
+
+                entity.Property(e => e.IsProcessed).HasColumnName("is_processed");
+
+                entity.Property(e => e.Requester)
+                    .IsRequired()
+                    .HasMaxLength(1)
+                    .HasColumnName("requester")
+                    .HasDefaultValueSql("('n')");
+
+                entity.Property(e => e.TableAffected)
+                    .IsRequired()
+                    .HasMaxLength(50)
+                    .HasColumnName("table_affected")
+                    .HasDefaultValueSql("('none')");
+
+                entity.Property(e => e.Timestamp)
+                    .HasColumnType("datetime")
+                    .HasColumnName("timestamp")
+                    .HasDefaultValueSql("(getdate())");
+
+                entity.Property(e => e.WillDelete).HasColumnName("will_delete");
+            });
+
             modelBuilder.Entity<Transaction>(entity =>
             {
                 entity.ToTable("Transaction");
@@ -332,6 +403,16 @@ namespace ServerApp_v0._1.Data.Models
                 entity.Property(e => e.Amount)
                     .HasColumnType("money")
                     .HasColumnName("amount");
+
+                entity.Property(e => e.Reason)
+                    .IsRequired()
+                    .HasColumnType("text")
+                    .HasColumnName("reason");
+
+                entity.Property(e => e.Timestamp)
+                    .HasColumnType("datetime")
+                    .HasColumnName("timestamp")
+                    .HasDefaultValueSql("(getdate())");
             });
 
             modelBuilder.Entity<TransactionAccountConnection>(entity =>
@@ -342,21 +423,29 @@ namespace ServerApp_v0._1.Data.Models
 
                 entity.Property(e => e.ConnectionId).HasColumnName("connection_id");
 
-                entity.Property(e => e.AccountRecieverId).HasColumnName("account_reciever_id");
+                entity.Property(e => e.AccountRecieverIban)
+                    .IsRequired()
+                    .HasMaxLength(32)
+                    .IsUnicode(false)
+                    .HasColumnName("account_reciever_iban");
 
-                entity.Property(e => e.AccountSenderId).HasColumnName("account_sender_id");
+                entity.Property(e => e.AccountSenderIban)
+                    .IsRequired()
+                    .HasMaxLength(32)
+                    .IsUnicode(false)
+                    .HasColumnName("account_sender_iban");
 
                 entity.Property(e => e.TransactionId).HasColumnName("transaction_id");
 
-                entity.HasOne(d => d.AccountReciever)
-                    .WithMany(p => p.TransactionAccountConnectionAccountRecievers)
-                    .HasForeignKey(d => d.AccountRecieverId)
+                entity.HasOne(d => d.AccountRecieverIbanNavigation)
+                    .WithMany(p => p.TransactionAccountConnectionAccountRecieverIbanNavigations)
+                    .HasForeignKey(d => d.AccountRecieverIban)
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK_TransactionAccountConnection_Account1");
 
-                entity.HasOne(d => d.AccountSender)
-                    .WithMany(p => p.TransactionAccountConnectionAccountSenders)
-                    .HasForeignKey(d => d.AccountSenderId)
+                entity.HasOne(d => d.AccountSenderIbanNavigation)
+                    .WithMany(p => p.TransactionAccountConnectionAccountSenderIbanNavigations)
+                    .HasForeignKey(d => d.AccountSenderIban)
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK_TransactionAccountConnection_Account");
 

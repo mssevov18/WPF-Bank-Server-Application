@@ -13,6 +13,7 @@ namespace ServerApp_v0._1.Data.Models
         public string Password { get; set; }
         public string PersonEgn { get; set; }
         public bool IsAdmin { get; set; }
+        public decimal Salary { get; set; }
 
         public virtual Bank Bank { get; set; }
         public virtual Person PersonEgnNavigation { get; set; }

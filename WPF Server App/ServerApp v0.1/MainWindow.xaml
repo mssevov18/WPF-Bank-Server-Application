@@ -18,10 +18,10 @@
                 <RowDefinition Height="9*"/>
             </Grid.RowDefinitions>
 
-            <Label Content="Logs" Grid.Row="0"
+            <Label Content="Requests" Grid.Row="0"
                    FontSize="20" HorizontalAlignment="Center"/>
 
-            <ListBox x:Name="LogListBox" Grid.Row="1"
+            <ListBox x:Name="RequestListBox" Grid.Row="1"
                      ItemsSource="{Binding}"
                      ScrollViewer.CanContentScroll="True" ScrollViewer.VerticalScrollBarVisibility="Auto" IsSynchronizedWithCurrentItem="True"/>
         </Grid>
@@ -34,6 +34,7 @@
                          Height="20" MinWidth="50"
                          TextAlignment="Center"
                          KeyUp="RefreshRateTextBox_KeyUp"
+                         KeyDown="RefreshRateTextBox_KeyDown"
                          PreviewTextInput="NumericOnly"/>
                 <Label Content="s"/>
             </StackPanel>

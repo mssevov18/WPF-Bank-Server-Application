@@ -9,11 +9,11 @@ namespace ServerApp_v0._1.Data.Models
     {
         public int ConnectionId { get; set; }
         public int TransactionId { get; set; }
-        public int AccountSenderId { get; set; }
-        public int AccountRecieverId { get; set; }
+        public string AccountSenderIban { get; set; }
+        public string AccountRecieverIban { get; set; }
 
-        public virtual Account AccountReciever { get; set; }
-        public virtual Account AccountSender { get; set; }
+        public virtual Account AccountRecieverIbanNavigation { get; set; }
+        public virtual Account AccountSenderIbanNavigation { get; set; }
         public virtual Transaction Transaction { get; set; }
     }
 }
