@@ -9,14 +9,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DatabaseTesting3", "Databas
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DatabaseTesting4", "DatabaseTesting4\DatabaseTesting4.csproj", "{5E31EA62-8AE0-43D6-8CE5-43D695E314AB}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WorkingWithMultipleWindows", "WorkingWithMultipleWindows\WorkingWithMultipleWindows.csproj", "{8F44001F-4A31-4FF3-95E7-0A3A2F3942AA}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WorkingWithMultipleWindows", "WorkingWithMultipleWindows\WorkingWithMultipleWindows.csproj", "{8F44001F-4A31-4FF3-95E7-0A3A2F3942AA}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServerApp v0.1", "ServerApp v0.1\ServerApp v0.1.csproj", "{BB3DCD60-B0A3-4B91-9E36-4ED38B7436FE}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{C48FADC5-9B53-41F5-BBF7-2868E524FEF1}"
-	ProjectSection(SolutionItems) = preProject
-		Important Scripts.txt = Important Scripts.txt
-	EndProjectSection
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServerApp v0.1", "ServerApp v0.1\ServerApp v0.1.csproj", "{BB3DCD60-B0A3-4B91-9E36-4ED38B7436FE}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

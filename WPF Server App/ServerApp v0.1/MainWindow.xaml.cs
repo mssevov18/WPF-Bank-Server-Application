@@ -2,6 +2,7 @@
 using ServerApp_v0._1.Data.Models;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -28,7 +29,7 @@ namespace ServerApp_v0._1
         private bool isOn;
         private bool isStartStopButtonLocked;
         private int refreshRate;
-        private List<Request> requests;
+        private ObservableCollection<Request> requests;
 
         public MainWindow()
         {
@@ -48,7 +49,7 @@ namespace ServerApp_v0._1
             DateTimer.Start();
 
             isOn = false;
-            requests = new List<Request>();
+            requests = new ObservableCollection<Request>();
             RefreshRateTextBox.Focus();
         }
 
@@ -102,6 +103,9 @@ namespace ServerApp_v0._1
 
                     // TODO
                     // Process the queries
+
+                    // TODO:
+                    // Add pagination to remove old logs
 
                     RequestListBox.Items.Add(request);
                     request.IsProcessed = true;
