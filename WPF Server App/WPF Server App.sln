@@ -5,7 +5,7 @@ VisualStudioVersion = 16.0.32106.194
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServerApp v0.1", "ServerApp v0.1\ServerApp v0.1.csproj", "{BB3DCD60-B0A3-4B91-9E36-4ED38B7436FE}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Bank Db Class Library", "..\Bank Class Library\Bank Db Class Library\Bank Db Class Library\Bank Db Class Library.csproj", "{3410F72B-6B3B-4E28-B481-0AE3629322B1}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Bank Db Class Library", "..\..\Bank-Db-Class-Library\Bank Db Class Library\Bank Db Class Library\Bank Db Class Library.csproj", "{EC7C15C9-A4B6-4B24-AC0C-CC99C6A5A4F7}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -17,10 +17,10 @@ Global
 		{BB3DCD60-B0A3-4B91-9E36-4ED38B7436FE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BB3DCD60-B0A3-4B91-9E36-4ED38B7436FE}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{BB3DCD60-B0A3-4B91-9E36-4ED38B7436FE}.Release|Any CPU.Build.0 = Release|Any CPU
-		{3410F72B-6B3B-4E28-B481-0AE3629322B1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{3410F72B-6B3B-4E28-B481-0AE3629322B1}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{3410F72B-6B3B-4E28-B481-0AE3629322B1}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{3410F72B-6B3B-4E28-B481-0AE3629322B1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EC7C15C9-A4B6-4B24-AC0C-CC99C6A5A4F7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EC7C15C9-A4B6-4B24-AC0C-CC99C6A5A4F7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EC7C15C9-A4B6-4B24-AC0C-CC99C6A5A4F7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EC7C15C9-A4B6-4B24-AC0C-CC99C6A5A4F7}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
