@@ -1,5 +1,4 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using ServerApp_v0._1.Data.Models;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -15,6 +14,10 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+
+//using ServerApp_v0._1.Data.Models;
+using Bank_Db_Class_Library;
+
 
 namespace ServerApp_v0._1
 {
@@ -98,7 +101,7 @@ namespace ServerApp_v0._1
                 // Proccess all requests and add them to requests List
                 foreach (Request request in dbContext.Requests)
                 {
-                    if (request.IsProcessed)
+                    if (request.IsSuccessful is not null)
                         continue;
 
                     // TODO
@@ -108,7 +111,8 @@ namespace ServerApp_v0._1
                     // Add pagination to remove old logs
 
                     RequestListBox.Items.Add(request);
-                    request.IsProcessed = true;
+                    // Successfully handled the request
+                    request.IsSuccessful = true;
                 }
                 dbContext.SaveChanges();
                 // Why do I have to keep updating itemsource and datacontext????
