@@ -17,7 +17,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\Bank-Db-Class-Library\Bank Db Class Library\Bank Db Class Library\Bank Db Class Library.csproj" />
+    <ProjectReference Include="..\..\..\Bank Db Class Library\Bank Db Class Library\Bank Db Class Library\Bank Db Class Library.csproj" />
   </ItemGroup>
 
 </Project>
