@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -18,6 +19,7 @@ using System.Windows.Shapes;
 //using ServerApp_v0._1.Data.Models;
 using Bank_Db_Class_Library;
 
+///TODO_HIGH: Separate app into pages
 
 namespace ServerApp_v0._1
 {
@@ -93,33 +95,129 @@ namespace ServerApp_v0._1
         // When interval comes update log collection
         private void UpdateRequestViewBox(object sender, EventArgs e)
         {
-            // Think of a way to pause the timer until the operation is done
-            //UpdateTimer.Stop();
-            using (Bank_DatabaseContext dbContext = new Bank_DatabaseContext())
+            try
             {
-
-                // Proccess all requests and add them to requests List
-                foreach (Request request in dbContext.Requests)
+                // Think of a way to pause the timer until the operation is done
+                //UpdateTimer.Stop();
+                using (Bank_DatabaseContext dbContext = new Bank_DatabaseContext())
                 {
-                    if (request.IsSuccessful is not null)
-                        continue;
+                    // Proccess all requests and add them to requests List
 
-                    // TODO
-                    // Process the queries
+                    ///TODO_HIGH: Filter Request by timestamp!
+                    foreach (Request request in dbContext.Requests)
+                    {
+                        if (request.IsSuccessful is not null)
+                            continue;
 
-                    // TODO:
-                    // Add pagination to remove old logs
+                        Bank tempBank = null;
+                        Person tempPerson = null;
 
-                    RequestListBox.Items.Add(request);
-                    // Successfully handled the request
-                    request.IsSuccessful = true;
+                        switch (request.TableAffected)
+                        {
+                            case "Person":
+                                Person person = JsonSerializer.Deserialize<Person>(request.Arguments);
+
+                                // Check if person exists
+                                if (dbContext.People.Where(p => p.Egn == person.Egn).FirstOrDefault() == null)
+                                    dbContext.People.Add(person);
+
+                                break;
+
+                            case "Bank_Worker":
+                                BankWorker bankWorker = JsonSerializer.Deserialize<BankWorker>(request.Arguments);
+
+                                tempBank = dbContext.Banks.Where(b => b.BankId == bankWorker.BankId)
+                                                          .FirstOrDefault();
+                                if (tempBank != null)
+                                {
+                                    bankWorker.Bank = tempBank;
+                                    ///TODO: Find if it is necessary to add bankworkers to bank's datasets etc.
+                                    ///Is this necessary?
+                                    //bankWorker.Bank.BankWorkers.Add(bankWorker);
+                                }
+
+                                tempPerson = dbContext.People.Where(p => p.Egn == bankWorker.PersonEgn)
+                                                             .FirstOrDefault();
+                                if (tempPerson != null)
+                                {
+                                    bankWorker.PersonEgnNavigation = tempPerson;
+                                    ///Is this necessary?
+                                    //bankWorker.PersonEgnNavigation.BankWorkers.Add(bankWorker);
+                                }
+
+                                ///TODO_HIGH: Implement error catching
+                                //if (bankWorker.Bank == null || bankWorker.PersonEgnNavigation == null)
+
+                                // Check if worker exists
+                                ///TODO_HIGH: Think of better data to check against
+                                if (dbContext.BankWorkers.Where(bw => bw.Username == bankWorker.Username).FirstOrDefault() == null)
+                                    dbContext.BankWorkers.Add(bankWorker);
+
+                                break;
+
+                            case "Account":
+#warning Needs testing!
+                                Account account = JsonSerializer.Deserialize<Account>(request.Arguments);
+
+                                tempBank = dbContext.Banks.Where(ac => ac.BankId == account.BankId)
+                                                          .FirstOrDefault();
+                                if (tempBank != null)
+                                {
+                                    account.Bank = tempBank;
+                                }
+
+                                tempPerson = dbContext.People.Where(p => p.Egn == account.PersonEgn)
+                                                             .FirstOrDefault();
+                                if (tempPerson != null)
+                                {
+                                    account.PersonEgnNavigation = tempPerson;
+                                }
+
+                                ///TODO_HIGH: Implement error catching
+
+                                // Check if worker exists
+                                ///TODO_HIGH: Think of better data to check against
+                                if (dbContext.Accounts.Where(ac => ac.AccountIban == account.AccountIban).FirstOrDefault() == null)
+                                    dbContext.Accounts.Add(account);
+
+                                break;
+
+                            case "Transaction":
+
+
+
+                                break;
+
+                            /// Both Card and CardReader are left for later
+
+                            case "Card":
+                                break;
+
+                            case "Card_Reader":
+                                break;
+
+                            default:
+                                break;
+                        }
+
+                        ///TODO_LOW: Add pagination to remove old logs
+
+
+                        RequestListBox.Items.Add(request);
+                        // Successfully handled the request
+                        request.IsSuccessful = true;
+                    }
+                    dbContext.SaveChanges();
+                    // Why do I have to keep updating itemsource and datacontext????
+                    //RequestListBox.ItemsSource = requests;
+                    //RequestListBox.DataContext = requests;
                 }
-                dbContext.SaveChanges();
-                // Why do I have to keep updating itemsource and datacontext????
-                //RequestListBox.ItemsSource = requests;
-                //RequestListBox.DataContext = requests;
+                //UpdateTimer.Start();
             }
-            //UpdateTimer.Start();
+            catch (Exception exception)
+            {
+                MessageBox.Show($"{exception.ToString()}\n\n{exception.Message}\n\n{exception.StackTrace}\n\n{exception.HelpLink}", $"{exception.GetType().ToString()}");
+            }
         }
 
         private void StartStopButton_Click(object sender, RoutedEventArgs e)
@@ -128,7 +226,10 @@ namespace ServerApp_v0._1
             if (RefreshRateTextBox.Text.Length > 5)
                 return;
             if (refreshRate == 0)
-                throw new Exception("Refresh rate can't be 0");
+            {
+                MessageBox.Show("Refresh rate can't be 0");
+                return;
+            }
 
             if (!isStartStopButtonLocked)
                 ChangeStartStopButton(!isOn);
@@ -161,7 +262,7 @@ namespace ServerApp_v0._1
         {
             if (isOn)
                 return;
-            // Idea! Add a dropdown to choose between seconds(s), minutes(m), hours(h), days(d)?
+            ///IDEA: ! Add a dropdown to choose between seconds(s), minutes(m), hours(h), days(d)?
 
             //// >A optimisation is possible -Dinko
             //// Lock the button -> No input

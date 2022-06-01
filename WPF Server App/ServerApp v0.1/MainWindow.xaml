@@ -21,9 +21,22 @@
             <Label Content="Requests" Grid.Row="0"
                    FontSize="20" HorizontalAlignment="Center"/>
 
+            <!--IDEA: On |double click/Button| on every row open a message box with detailed info. ie. deserialized classes etc-->
             <ListBox x:Name="RequestListBox" Grid.Row="1"
-                     ItemsSource="{Binding}"
-                     ScrollViewer.CanContentScroll="True" ScrollViewer.VerticalScrollBarVisibility="Auto" IsSynchronizedWithCurrentItem="True"/>
+                     ItemsSource="{Binding requests}"
+                     ScrollViewer.CanContentScroll="True"
+                     ScrollViewer.VerticalScrollBarVisibility="Auto"
+                     IsSynchronizedWithCurrentItem="True">
+                <ListBox.ItemTemplate>
+                    <DataTemplate>
+                        <StackPanel>
+                            <Label Content="{Binding}"/>
+                            <!--TODO: Think of a better way to display args!-->
+                            <Label Content="{Binding Path=Arguments}"/>
+                        </StackPanel>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
         </Grid>
 
         <StackPanel Grid.Column="1"
