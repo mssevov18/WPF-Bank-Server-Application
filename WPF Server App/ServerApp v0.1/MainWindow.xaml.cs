@@ -95,117 +95,128 @@ namespace ServerApp_v0._1
         // When interval comes update log collection
         private void UpdateRequestViewBox(object sender, EventArgs e)
         {
-            try
+            // Think of a way to pause the timer until the operation is done
+            //UpdateTimer.Stop();
+            using (Bank_DatabaseContext dbContext = new Bank_DatabaseContext())
             {
-                // Think of a way to pause the timer until the operation is done
-                //UpdateTimer.Stop();
-                using (Bank_DatabaseContext dbContext = new Bank_DatabaseContext())
+                try
                 {
                     // Proccess all requests and add them to requests List
 
                     ///TODO_HIGH: Filter Request by timestamp!
                     foreach (Request request in dbContext.Requests)
                     {
-                        if (request.IsSuccessful is not null)
-                            continue;
-
-                        Bank tempBank = null;
-                        Person tempPerson = null;
-
-                        switch (request.TableAffected)
+                        try
                         {
-                            case "Person":
-                                Person person = JsonSerializer.Deserialize<Person>(request.Arguments);
+                            if (request.IsSuccessful is not null)
+                                continue;
 
-                                // Check if person exists
-                                if (dbContext.People.Where(p => p.Egn == person.Egn).FirstOrDefault() == null)
-                                    dbContext.People.Add(person);
+                            Bank tempBank = null;
+                            Person tempPerson = null;
 
-                                break;
+                            switch (request.TableAffected)
+                            {
+                                case "Person":
+                                    Person person = JsonSerializer.Deserialize<Person>(request.Arguments);
 
-                            case "Bank_Worker":
-                                BankWorker bankWorker = JsonSerializer.Deserialize<BankWorker>(request.Arguments);
+                                    // Check if person exists
+                                    if (dbContext.People.Where(p => p.Egn == person.Egn).FirstOrDefault() == null)
+                                        dbContext.People.Add(person);
 
-                                tempBank = dbContext.Banks.Where(b => b.BankId == bankWorker.BankId)
-                                                          .FirstOrDefault();
-                                if (tempBank != null)
-                                {
-                                    bankWorker.Bank = tempBank;
-                                    ///TODO: Find if it is necessary to add bankworkers to bank's datasets etc.
-                                    ///Is this necessary?
-                                    //bankWorker.Bank.BankWorkers.Add(bankWorker);
-                                }
+                                    break;
 
-                                tempPerson = dbContext.People.Where(p => p.Egn == bankWorker.PersonEgn)
-                                                             .FirstOrDefault();
-                                if (tempPerson != null)
-                                {
-                                    bankWorker.PersonEgnNavigation = tempPerson;
-                                    ///Is this necessary?
-                                    //bankWorker.PersonEgnNavigation.BankWorkers.Add(bankWorker);
-                                }
+                                case "Bank_Worker":
+                                    BankWorker bankWorker = JsonSerializer.Deserialize<BankWorker>(request.Arguments);
 
-                                ///TODO_HIGH: Implement error catching
-                                //if (bankWorker.Bank == null || bankWorker.PersonEgnNavigation == null)
+                                    tempBank = dbContext.Banks.Where(b => b.BankId == bankWorker.BankId)
+                                                              .FirstOrDefault();
+                                    if (tempBank != null)
+                                    {
+                                        bankWorker.Bank = tempBank;
+                                        ///TODO: Find if it is necessary to add bankworkers to bank's datasets etc.
+                                        ///Is this necessary?
+                                        //bankWorker.Bank.BankWorkers.Add(bankWorker);
+                                    }
 
-                                // Check if worker exists
-                                ///TODO_HIGH: Think of better data to check against
-                                if (dbContext.BankWorkers.Where(bw => bw.Username == bankWorker.Username).FirstOrDefault() == null)
-                                    dbContext.BankWorkers.Add(bankWorker);
+                                    tempPerson = dbContext.People.Where(p => p.Egn == bankWorker.PersonEgn)
+                                                                 .FirstOrDefault();
+                                    if (tempPerson != null)
+                                    {
+                                        bankWorker.PersonEgnNavigation = tempPerson;
+                                        ///Is this necessary?
+                                        //bankWorker.PersonEgnNavigation.BankWorkers.Add(bankWorker);
+                                    }
 
-                                break;
+                                    ///TODO_HIGH: Implement error catching
+                                    //if (bankWorker.Bank == null || bankWorker.PersonEgnNavigation == null)
 
-                            case "Account":
+                                    // Check if worker exists
+                                    ///TODO_HIGH: Think of better data to check against
+                                    if (dbContext.BankWorkers.Where(bw => bw.Username == bankWorker.Username).FirstOrDefault() == null)
+                                        dbContext.BankWorkers.Add(bankWorker);
+
+                                    break;
+
+                                case "Account":
 #warning Needs testing!
-                                Account account = JsonSerializer.Deserialize<Account>(request.Arguments);
+                                    Account account = JsonSerializer.Deserialize<Account>(request.Arguments);
 
-                                tempBank = dbContext.Banks.Where(ac => ac.BankId == account.BankId)
-                                                          .FirstOrDefault();
-                                if (tempBank != null)
-                                {
-                                    account.Bank = tempBank;
-                                }
+                                    if (!account.Email.Contains("@"))
+                                        throw new Exception("Email does not conform to %@%");
 
-                                tempPerson = dbContext.People.Where(p => p.Egn == account.PersonEgn)
-                                                             .FirstOrDefault();
-                                if (tempPerson != null)
-                                {
-                                    account.PersonEgnNavigation = tempPerson;
-                                }
+                                    tempBank = dbContext.Banks.Where(ac => ac.BankId == account.BankId)
+                                                              .FirstOrDefault();
+                                    if (tempBank != null)
+                                    {
+                                        account.Bank = tempBank;
+                                    }
 
-                                ///TODO_HIGH: Implement error catching
+                                    tempPerson = dbContext.People.Where(p => p.Egn == account.PersonEgn)
+                                                                 .FirstOrDefault();
+                                    if (tempPerson != null)
+                                    {
+                                        account.PersonEgnNavigation = tempPerson;
+                                    }
 
-                                // Check if worker exists
-                                ///TODO_HIGH: Think of better data to check against
-                                if (dbContext.Accounts.Where(ac => ac.AccountIban == account.AccountIban).FirstOrDefault() == null)
-                                    dbContext.Accounts.Add(account);
+                                    ///TODO_HIGH: Implement error catching
 
-                                break;
+                                    // Check if worker exists
+                                    ///TODO_HIGH: Think of better data to check against
+                                    if (dbContext.Accounts.Where(ac => ac.AccountIban == account.AccountIban).FirstOrDefault() == null)
+                                        dbContext.Accounts.Add(account);
 
-                            case "Transaction":
+                                    break;
+
+                                case "Transaction":
 
 
 
-                                break;
+                                    break;
 
-                            /// Both Card and CardReader are left for later
+                                /// Both Card and CardReader are left for later
 
-                            case "Card":
-                                break;
+                                case "Card":
+                                    break;
 
-                            case "Card_Reader":
-                                break;
+                                case "Card_Reader":
+                                    break;
 
-                            default:
-                                break;
+                                default:
+                                    break;
+                            }
+
+                            ///TODO_LOW: Add pagination to remove old logs
+
+
+                            RequestListBox.Items.Add(request);
+                            // Successfully handled the request
+                            request.IsSuccessful = true;
                         }
-
-                        ///TODO_LOW: Add pagination to remove old logs
-
-
-                        RequestListBox.Items.Add(request);
-                        // Successfully handled the request
-                        request.IsSuccessful = true;
+                        catch (Exception)
+                        {
+                            request.IsSuccessful = false;
+                            throw;
+                        }
                     }
                     dbContext.SaveChanges();
                     // Why do I have to keep updating itemsource and datacontext????
@@ -213,10 +224,10 @@ namespace ServerApp_v0._1
                     //RequestListBox.DataContext = requests;
                 }
                 //UpdateTimer.Start();
-            }
-            catch (Exception exception)
-            {
-                MessageBox.Show($"{exception.ToString()}\n\n{exception.Message}\n\n{exception.StackTrace}\n\n{exception.HelpLink}", $"{exception.GetType().ToString()}");
+                catch (Exception exception)
+                {
+                    MessageBox.Show($"{exception.ToString()}\n\n{exception.Message}\n\n{exception.StackTrace}\n\n{exception.HelpLink}", $"{exception.GetType().ToString()}");
+                }
             }
         }
 

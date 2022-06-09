@@ -16,7 +16,21 @@ namespace ServerApp_v0._1
     {
         protected override void OnStartup(StartupEventArgs e)
         {
-            Bank_DatabaseContext.ConnectionString = e.Args[0];
+            string[] args = e.Args[0].Split("||");
+            if (args[0] != string.Empty)
+                Bank_DatabaseContext.ConnectionString = args[0];
+            if (args[1] != string.Empty)
+            {
+                using (Bank_DatabaseContext dbContext = new Bank_DatabaseContext())
+                {
+#warning FirstOrDefault can return int.default -> May cause errors!
+                    Bank bank = dbContext.Banks.Where(b => b.Name == args[1]).FirstOrDefault();
+                    if (bank is not null)
+                        Bank_DatabaseContext.BankId = bank.BankId;
+                    else
+                        Bank_DatabaseContext.BankId = 0;
+                }
+            }
 
             base.OnStartup(e);
         }
